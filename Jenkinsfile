@@ -1,21 +1,27 @@
 pipeline {
     agent any
-
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/bagfat/sast-demo-app.git', branch: 'master'
+                git 'https://github.com/bagfat/sast-demo-app.git'
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 sh 'pip install bandit'
             }
         }
+
         stage('SAST Analysis') {
             steps {
                 sh 'bandit -f xml -o bandit-output.xml -r . || true'
-                recordIssues tools: [bandit(pattern: 'bandit-output.xml')]
+            }
+        }
+
+        stage('Archive Results') {
+            steps {
+                archiveArtifacts artifacts: 'bandit-output.xml', allowEmptyArchive: true
             }
         }
     }
